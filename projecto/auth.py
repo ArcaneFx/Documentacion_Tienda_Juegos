@@ -14,6 +14,32 @@ def register_user(nombre_usuario, correo, password):
         connection = get_db_connection()
         cursor = connection.cursor()
 
+        #verificar si el nombre de usuario ya existe
+        query = """
+        SELECT usuario_id
+        FROM usuarios
+        WHERE nombre_usuario = %s
+        """
+
+        cursor.execute(query, (nombre_usuario,))
+        user = cursor.fetchone()
+
+        if user:
+            print("Este nombre de usuario o correo electronico no están disponibles")
+            return None
+        
+        #verificar si el correo electrónico ya existe
+        query = """
+        SELECT usuario_id
+        FROM usuarios
+        WHERE correo_electronico = %s
+        """
+        cursor.execute(query, (correo,))
+        user = cursor.fetchone()
+        if user:
+            print("Este nombre de usuario o correo electronico no están disponibles")
+            return None
+
         # HASH DE CONTRASEÑA
         password_hash = bcrypt.hashpw(
             password.encode('utf-8'),
@@ -64,7 +90,7 @@ def login_user(nombre_usuario, password):
 
         # usuario no existe
         if user is None:
-            print("Usuario no encontrado")
+            print("Usuario o Contraseña incorrectas")
             return None
 
         usuario_id = user[0]
@@ -83,7 +109,7 @@ def login_user(nombre_usuario, password):
 
         else:
 
-            print("Contraseña incorrecta")
+            print("Usuario o Contraseña incorrectas")
             return None
 
     except Exception as e:
