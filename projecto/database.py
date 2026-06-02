@@ -8,9 +8,10 @@ def get_db_connection():
         
         connection = psycopg2.connect( 
             host="localhost",
-            database="test3", #nombre de la base de datos (yo le tengo llamada asi)
+            database="steam", #nombre de la base de datos (yo le tengo llamada asi)
             user="postgres", 
-            password="jericko" #respectivo password de cada uno
+            password="1234", #respectivo password de cada uno
+            port=5432
         )
         return connection
     except Exception as e:

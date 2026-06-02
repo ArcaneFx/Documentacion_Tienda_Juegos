@@ -220,3 +220,33 @@ JOIN transacciones t ON j.juego_id = j.juego_id -- Relación lógica
 GROUP BY c.nombre
 ORDER BY recaudacion DESC;
 
+#PRUEBAAAAAAAAAAAA
+
+SELECT usuario_id, nombre_usuario, correo_electronico, contrasena_hash, saldo_cartera 
+FROM usuarios 
+ORDER BY usuario_id DESC 
+LIMIT 5;
+
+SELECT t.transaccion_id, u.nombre_usuario, t.monto_total, t.fecha_transaccion
+FROM transacciones t
+JOIN usuarios u ON t.usuario_id = u.usuario_id
+WHERE t.transaccion_id = 40001;
+
+SELECT b.usuario_id, u.nombre_usuario, j.titulo AS juego_poseido, b.fecha_compra
+FROM biblioteca b
+JOIN usuarios u ON b.usuario_id = u.usuario_id
+JOIN juegos j ON b.juego_id = j.juego_id
+WHERE u.nombre_usuario = 'yughiku';
+
+DELETE FROM carrito_compras WHERE usuario_id = (SELECT usuario_id FROM usuarios WHERE nombre_usuario = 'yughiku');
+
+-- 2. Borramos el juego que quedó asociado en su biblioteca
+DELETE FROM biblioteca WHERE usuario_id = (SELECT usuario_id FROM usuarios WHERE nombre_usuario = 'yughiku');
+
+-- 3. Borramos la boleta N° 40001 que generó en las transacciones
+DELETE FROM transacciones WHERE transaccion_id = 40001;
+
+-- 4. Ahora que ya no tiene compras ni amarras, borramos al usuario maestro
+DELETE FROM usuarios WHERE nombre_usuario = 'yughiku';
+
+
