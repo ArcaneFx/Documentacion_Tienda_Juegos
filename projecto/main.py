@@ -1,6 +1,7 @@
 import sys
 from database import get_db_connection
 from auth import login_user, register_user
+from datos_sinteticos import cargar_datos_sinteticos
 import transacciones_crud as crud
 
 def solicitar_id_valido(mensaje):
@@ -154,4 +155,5 @@ def menu_principal():
             print("Opción incorrecta.")
 
 if __name__ == "__main__":
+    cargar_datos_sinteticos() #carga los datos sinteticos si la base de datos esta vacia, si ya tiene datos no hace nada
     menu_principal()
