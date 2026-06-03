@@ -155,5 +155,16 @@ def menu_principal():
             print("Opción incorrecta.")
 
 if __name__ == "__main__":
-    cargar_datos_sinteticos() #carga los datos sinteticos si la base de datos esta vacia, si ya tiene datos no hace nada
+    cargar_datos_sinteticos() #carga los primeros 500 usuarios
+    time.sleep(4) #espera 4 segundos
+    cargar_datos_sinteticos() #carga los 3 usuarios particulares
+    #si los 503 usuarios ya estan cargados, simplemente pasa de largo
+    #TEST TEST TEST
+    # usuarios particulares: 
+    # nombre pass: contraseña
+    # arkantosalmirante pass: almirantesenior
+    # chuckmcgill pass: estadisticopesao
+    # panxocloloco pass: panxoxo
+    # TEST TEST TEST
+
     menu_principal()
