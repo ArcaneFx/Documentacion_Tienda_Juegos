@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 TRUNCATE usuarios, juegos, categorias, metodos_pago, transacciones, biblioteca, 
 logros, logros_usuarios, resenas, lista_deseos, carrito_compras, juegos_categorias RESTART IDENTITY CASCADE;
 
@@ -44,7 +46,7 @@ BEGIN
         VALUES (
             (nombres_usr[1 + floor(random() * array_length(nombres_usr, 1))]) || i || floor(random()*99),
             'estudiante' || i || '@uach.cl',
-            crypt('password' || i, gen_salt('bf')),
+            crypt('pwhash_' || i, gen_salt('bf')),
             random() * 100
         ) RETURNING usuario_id INTO v_u_id;
 
