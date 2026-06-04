@@ -1,7 +1,3 @@
--- datos_sinteticos.sql
--- Integrante: Ruby
--- Carga masiva de 40.000 transacciones simulando 4 años de actividad
-
 -- Activar extensión necesaria para encriptar contraseñas con crypt()/gen_salt()
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
