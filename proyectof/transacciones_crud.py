@@ -1,7 +1,3 @@
-# transacciones_crud.py
-# Integrante: Parra
-# Funciones que ingresan y eliminan datos de la base de datos.
-
 import bcrypt
 from datetime import datetime
 from database import get_db_connection

@@ -1,6 +1,3 @@
-# auth.py
-# Integrante: Ruby
-# Funciones de autenticación: registro y login de usuarios.
 import bcrypt
 from database import get_db_connection
 

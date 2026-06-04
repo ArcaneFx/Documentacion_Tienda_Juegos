@@ -1,9 +1,3 @@
-# consultas.py
-# Integrante: Hans
-# Funciones que listan información de la base de datos.
-# Usan SELECT y JOIN para obtener datos relacionados entre tablas.
-# Las validaciones de entrada las maneja main.py (Jason).
-
 from database import get_db_connection
 
 
