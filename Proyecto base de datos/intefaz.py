@@ -92,8 +92,10 @@ def ventana_login():
             usuario_activo["id"]     = uid
             usuario_activo["nombre"] = nombre
             win.destroy()
-            lbl_bienvenida.config(text=f"Bienvenido, {nombre}")
-            btn_login.config(text="Cerrar sesión", command=cerrar_sesion)
+            if lbl_bienvenida_ref:
+                lbl_bienvenida_ref.config(text=f"Bienvenido, {nombre}")
+            if btn_login_ref:
+                btn_login_ref.config(text="Cerrar sesión", command=cerrar_sesion)
         else:
             lbl_error.config(text="Usuario o contraseña incorrectos.")
 
@@ -521,11 +523,18 @@ def ventana_historial():
 #  HELPERS
 # ══════════════════════════════════════════════
 
+# Variables globales para acceder a widgets desde otras funciones
+lbl_bienvenida_ref = None
+btn_login_ref = None
+
+
 def cerrar_sesion():
     usuario_activo["id"]     = None
     usuario_activo["nombre"] = None
-    lbl_bienvenida.config(text="")
-    btn_login.config(text="Iniciar sesión", command=ventana_login)
+    if lbl_bienvenida_ref:
+        lbl_bienvenida_ref.config(text="")
+    if btn_login_ref:
+        btn_login_ref.config(text="Iniciar sesión", command=ventana_login)
     messagebox.showinfo("Sesión", "Sesión cerrada.")
 
 
