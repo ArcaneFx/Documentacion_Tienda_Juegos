@@ -74,7 +74,10 @@ Esto lanzará la interfaz gráfica de la tienda.
 
 ## 5. Equipo de Desarrollo
 
-*   Francisco
-*   Hans
-*   Jason
+*   Francisco Rivera
+*   Hans Benicke
+*   Jason Cardenas
+*   Benjamin Parra
+*   Sebastian Rubilar
+
 
