@@ -8,7 +8,7 @@ def get_db_connection():
         
         connection = psycopg2.connect( 
             host="localhost",
-            database="test3", #nombre de la base de datos (yo le tengo llamada asi)
+            database="Steam_casi", #nombre de la base de datos (yo le tengo llamada asi)
             user="postgres", 
             password="postgres" #respectivo password de cada uno
         )

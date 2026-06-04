@@ -92,8 +92,10 @@ def ventana_login():
             usuario_activo["id"]     = uid
             usuario_activo["nombre"] = nombre
             win.destroy()
-            lbl_bienvenida.config(text=f"Bienvenido, {nombre}")
-            btn_login.config(text="Cerrar sesión", command=cerrar_sesion)
+            if lbl_bienvenida_ref:
+                lbl_bienvenida_ref.config(text=f"Bienvenido, {nombre}")
+            if btn_login_ref:
+                btn_login_ref.config(text="Cerrar sesión", command=cerrar_sesion)
         else:
             lbl_error.config(text="Usuario o contraseña incorrectos.")
 
@@ -521,45 +523,59 @@ def ventana_historial():
 #  HELPERS
 # ══════════════════════════════════════════════
 
+# Variables globales para acceder a widgets desde otras funciones
+lbl_bienvenida_ref = None
+btn_login_ref = None
+
+
 def cerrar_sesion():
     usuario_activo["id"]     = None
     usuario_activo["nombre"] = None
-    lbl_bienvenida.config(text="")
-    btn_login.config(text="Iniciar sesión", command=ventana_login)
+    if lbl_bienvenida_ref:
+        lbl_bienvenida_ref.config(text="")
+    if btn_login_ref:
+        btn_login_ref.config(text="Iniciar sesión", command=ventana_login)
     messagebox.showinfo("Sesión", "Sesión cerrada.")
 
 
 # ══════════════════════════════════════════════
 #  VENTANA PRINCIPAL
 # ══════════════════════════════════════════════
+def iniciar_aplicacion_gui():
+    root = tk.Tk()
+    root.title("Tienda de Videojuegos")
+    root.geometry("400x420")
+    root.resizable(False, False)
 
-root = tk.Tk()
-root.title("Tienda de Videojuegos")
-root.geometry("400x420")
-root.resizable(False, False)
+    tk.Label(root, text="Tienda de Videojuegos",
+             font=("Arial", 15, "bold")).pack(pady=15)
 
-tk.Label(root, text="Tienda de Videojuegos",
-         font=("Arial", 15, "bold")).pack(pady=15)
+    lbl_bienvenida = tk.Label(root, text="", font=("Arial", 10))
+    lbl_bienvenida.pack()
 
-lbl_bienvenida = tk.Label(root, text="", font=("Arial", 10))
-lbl_bienvenida.pack()
+    frame = tk.Frame(root)
+    frame.pack(pady=10)
 
-frame = tk.Frame(root)
-frame.pack(pady=10)
+    btn_login = tk.Button(frame, text="Iniciar sesión", command=ventana_login, width=18)
+    btn_login.grid(row=0, column=0, padx=8, pady=6)
 
-btn_login = tk.Button(frame, text="Iniciar sesión", command=ventana_login, width=18)
-btn_login.grid(row=0, column=0, padx=8, pady=6)
+    tk.Button(frame, text="Mi perfil",    command=ventana_perfil,    width=18)\
+        .grid(row=0, column=1, padx=8, pady=6)
+    tk.Button(frame, text="Ver juegos",   command=ventana_catalogo,  width=18)\
+        .grid(row=1, column=0, padx=8, pady=6)
+    tk.Button(frame, text="Mi biblioteca",command=ventana_biblioteca,width=18)\
+        .grid(row=1, column=1, padx=8, pady=6)
+    tk.Button(frame, text="Mi carrito",   command=ventana_carrito,   width=18)\
+        .grid(row=2, column=0, padx=8, pady=6)
+    tk.Button(frame, text="Historial",    command=ventana_historial, width=18)\
+        .grid(row=2, column=1, padx=8, pady=6)
+    
+    global lbl_bienvenida_ref, btn_login_ref
+    lbl_bienvenida_ref = lbl_bienvenida
+    btn_login_ref = btn_login
 
-tk.Button(frame, text="Mi perfil",    command=ventana_perfil,    width=18)\
-    .grid(row=0, column=1, padx=8, pady=6)
-tk.Button(frame, text="Ver juegos",   command=ventana_catalogo,  width=18)\
-    .grid(row=1, column=0, padx=8, pady=6)
-tk.Button(frame, text="Mi biblioteca",command=ventana_biblioteca,width=18)\
-    .grid(row=1, column=1, padx=8, pady=6)
-tk.Button(frame, text="Mi carrito",   command=ventana_carrito,   width=18)\
-    .grid(row=2, column=0, padx=8, pady=6)
-tk.Button(frame, text="Historial",    command=ventana_historial, width=18)\
-    .grid(row=2, column=1, padx=8, pady=6)
+    root.after(100, ventana_login)
+    root.mainloop()
 
-root.after(100, ventana_login)
-root.mainloop()
+if __name__ == '__main__':
+    iniciar_aplicacion_gui()
