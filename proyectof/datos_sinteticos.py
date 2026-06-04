@@ -1,7 +1,3 @@
-# datos_sinteticos.py
-# Integrante: Ruby
-# Carga los datos sintéticos en la base de datos según el estado en que se encuentre.
-
 from database import get_db_connection
 
 
