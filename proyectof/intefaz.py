@@ -8,8 +8,7 @@ from consultas import (
     mostrar_perfil_usuario,
     mostrar_biblioteca,
     mostrar_carrito,
-    mostrar_historial_compras,
-    feed_juegos_mas_vendidos
+    mostrar_historial_compras
 )
 from transacciones_crud import (
     registrar_usuario,
