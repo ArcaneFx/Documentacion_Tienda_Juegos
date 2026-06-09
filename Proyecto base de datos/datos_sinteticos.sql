@@ -1,3 +1,10 @@
+-- datos_sinteticos.sql
+-- Integrante: Ruby
+-- Carga masiva de 40.000 transacciones simulando 4 años de actividad
+
+-- Activar extensión necesaria para encriptar contraseñas con crypt()/gen_salt()
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 TRUNCATE usuarios, juegos, categorias, metodos_pago, transacciones, biblioteca, 
 logros, logros_usuarios, resenas, lista_deseos, carrito_compras, juegos_categorias RESTART IDENTITY CASCADE;
 
@@ -29,10 +36,14 @@ DECLARE
     v_u_id         INT;
     v_j_id         INT;
     v_l_id         INT;
+    v_mp_id        INT;
     v_fecha        TIMESTAMP;
     v_precio       DECIMAL;
     i              INT;
     j              INT;
+
+    -- arreglo para mapear usuario_id -> metodo_pago_id
+    metodos_pago_ids INT[] := ARRAY[]::INT[];
 BEGIN
 
     INSERT INTO categorias (nombre) 
@@ -44,12 +55,16 @@ BEGIN
         VALUES (
             (nombres_usr[1 + floor(random() * array_length(nombres_usr, 1))]) || i || floor(random()*99),
             'estudiante' || i || '@uach.cl',
-            'pwhash_' || i,
+            crypt('pwhash_' || i, gen_salt('bf')),
             random() * 100
         ) RETURNING usuario_id INTO v_u_id;
 
         INSERT INTO metodos_pago (usuario_id, proveedor, ultimos_cuatro_digitos, es_predeterminado)
-        VALUES (v_u_id, 'Visa/MasterCard', floor(1000 + random() * 8999)::TEXT, TRUE);
+        VALUES (v_u_id, 'Visa/MasterCard', floor(1000 + random() * 8999)::TEXT, TRUE)
+        RETURNING metodo_pago_id INTO v_mp_id;
+
+        -- guardar el metodo_pago_id en el arreglo (indice = usuario_id)
+        metodos_pago_ids[v_u_id] := v_mp_id;
     END LOOP;
 
     -- Juegos y logros
@@ -84,13 +99,13 @@ BEGIN
     FOR i IN 1..v_transacciones_total LOOP
         v_u_id := 1 + floor(random() * v_total_usuarios);
         v_j_id := 1 + floor(random() * v_total_juegos);
-        v_fecha := '2023-01-01'::TIMESTAMP + (random() * (interval '1210 days'));
+        v_fecha := '2021-01-01'::TIMESTAMP + (random() * (interval '1460 days'));
         
         SELECT precio INTO v_precio FROM juegos WHERE juego_id = v_j_id;
 
-        -- Venta y Biblioteca
+        -- Venta y Biblioteca (usa el metodo_pago_id correcto del usuario)
         INSERT INTO transacciones (usuario_id, metodo_pago_id, monto_total, fecha_transaccion)
-        VALUES (v_u_id, v_u_id, v_precio, v_fecha);
+        VALUES (v_u_id, metodos_pago_ids[v_u_id], v_precio, v_fecha);
 
         INSERT INTO biblioteca (usuario_id, juego_id, fecha_compra, tiempo_jugado_minutos)
         VALUES (v_u_id, v_j_id, v_fecha, floor(random() * 8000))
@@ -116,137 +131,3 @@ BEGIN
     RAISE NOTICE '✔ Datos cargados con logros personalizados: % transacciones.', v_transacciones_total;
 END;
 $$;
-
-
-
-
-
----------------------
---prueba de datos
----------------------
-
-SELECT EXTRACT(YEAR FROM fecha_transaccion) AS anio, SUM(monto_total) 
-FROM transacciones 
-GROUP BY anio ORDER BY anio;
-
-
-
-SELECT u.nombre_usuario, SUM(b.tiempo_jugado_minutos) 
-FROM usuarios u 
-JOIN biblioteca b ON u.usuario_id = b.usuario_id 
-GROUP BY u.nombre_usuario 
-ORDER BY 2 DESC LIMIT 10
-;
-
-
-SELECT 'Usuarios' as Tabla, COUNT(*) as Total FROM usuarios
-UNION ALL SELECT 'Juegos', COUNT(*) FROM juegos
-UNION ALL SELECT 'Ventas', COUNT(*) FROM transacciones
-UNION ALL SELECT 'Logros Obtenidos', COUNT(*) FROM logros_usuarios;
-
-SELECT 
-    EXTRACT(YEAR FROM fecha_transaccion) AS anio,
-    COUNT(*) AS num_ventas,
-    SUM(monto_total) AS ingresos_totales
-	FROM transacciones
-	GROUP BY anio
-	ORDER BY anio;
-
-SELECT 
-    j.titulo,
-    COUNT(b.usuario_id) AS copias_vendidas,
-    COUNT(r.resena_id) AS cantidad_resenas,
-    ROUND(AVG(CASE WHEN r.recomendado THEN 1 ELSE 0 END) * 100, 2) AS porcentaje_aprobacion
-	FROM juegos j
-	LEFT JOIN biblioteca b ON j.juego_id = b.juego_id
-	LEFT JOIN resenas r ON j.juego_id = r.juego_id
-	GROUP BY j.juego_id, j.titulo
-	ORDER BY copias_vendidas DESC
-	LIMIT 5;
-
-
-SELECT 
-    u.nombre_usuario,
-    j.titulo AS juego,
-    l.nombre AS nombre_logro,
-    lu.fecha_desbloqueo
-FROM logros_usuarios lu
-JOIN usuarios u ON lu.usuario_id = u.usuario_id
-JOIN logros l ON lu.logro_id = l.logro_id
-JOIN juegos j ON l.juego_id = j.juego_id
-ORDER BY lu.fecha_desbloqueo DESC
-LIMIT 10;
-
-
-SELECT 
-    u.nombre_usuario,
-    COUNT(t.transaccion_id) AS compras_realizadas,
-    SUM(t.monto_total) AS total_invertido
-FROM usuarios u
-JOIN transacciones t ON u.usuario_id = t.usuario_id
-GROUP BY u.usuario_id, u.nombre_usuario
-HAVING SUM(t.monto_total) > 100
-ORDER BY total_invertido DESC;
-
-
-SELECT 'Transacciones Totales' AS Concepto, COUNT(*) AS Cantidad FROM transacciones
-UNION ALL
-SELECT 'Juegos en Bibliotecas', COUNT(*) FROM biblioteca
-UNION ALL
-SELECT 'Logros Desbloqueados', COUNT(*) FROM logros_usuarios;
-
-SELECT 
-    t.transaccion_id, 
-    u.nombre_usuario, 
-    j.titulo AS juego_comprado, 
-    t.monto_total, 
-    mp.proveedor AS metodo_usado, 
-    t.fecha_transaccion
-FROM transacciones t
-JOIN usuarios u ON t.usuario_id = u.usuario_id
-JOIN metodos_pago mp ON t.metodo_pago_id = mp.metodo_pago_id
-JOIN juegos j ON j.juego_id = (SELECT b.juego_id FROM biblioteca b WHERE b.usuario_id = u.usuario_id LIMIT 1)
-LIMIT 10;
-
-
-SELECT 
-    c.nombre AS categoria, 
-    COUNT(t.transaccion_id) AS total_ventas,
-    SUM(t.monto_total) AS recaudacion
-FROM categorias c
-JOIN juegos_categorias jc ON c.categoria_id = jc.categoria_id
-JOIN juegos j ON jc.juego_id = j.juego_id
-JOIN transacciones t ON j.juego_id = j.juego_id -- Relación lógica
-GROUP BY c.nombre
-ORDER BY recaudacion DESC;
-
-#PRUEBAAAAAAAAAAAA
-
-SELECT usuario_id, nombre_usuario, correo_electronico, contrasena_hash, saldo_cartera 
-FROM usuarios 
-ORDER BY usuario_id DESC 
-LIMIT 5;
-
-SELECT t.transaccion_id, u.nombre_usuario, t.monto_total, t.fecha_transaccion
-FROM transacciones t
-JOIN usuarios u ON t.usuario_id = u.usuario_id
-WHERE t.transaccion_id = 40001;
-
-SELECT b.usuario_id, u.nombre_usuario, j.titulo AS juego_poseido, b.fecha_compra
-FROM biblioteca b
-JOIN usuarios u ON b.usuario_id = u.usuario_id
-JOIN juegos j ON b.juego_id = j.juego_id
-WHERE u.nombre_usuario = 'yughiku';
-
-DELETE FROM carrito_compras WHERE usuario_id = (SELECT usuario_id FROM usuarios WHERE nombre_usuario = 'yughiku');
-
--- 2. Borramos el juego que quedó asociado en su biblioteca
-DELETE FROM biblioteca WHERE usuario_id = (SELECT usuario_id FROM usuarios WHERE nombre_usuario = 'yughiku');
-
--- 3. Borramos la boleta N° 40001 que generó en las transacciones
-DELETE FROM transacciones WHERE transaccion_id = 40001;
-
--- 4. Ahora que ya no tiene compras ni amarras, borramos al usuario maestro
-DELETE FROM usuarios WHERE nombre_usuario = 'yughiku';
-
-
